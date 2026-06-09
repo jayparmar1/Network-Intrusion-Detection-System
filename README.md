@@ -48,7 +48,7 @@ Random Forest combines many decision trees, making predictions more accurate and
 ## EDA Highlights
 
 ### Class Distribution
-<img width="868" height="862" alt="image" src="https://github.com/user-attachments/assets/e95746cd-216f-45bc-b262-c35891675dbd" />
+<img width="868" height="871" alt="image" src="https://github.com/user-attachments/assets/f2742b4b-f908-40b3-82f4-ee8d07250204" />
 
 The dataset is heavily imbalanced — Normal and DoS dominate while U2R and R2L are rare. This was handled using `class_weight='balanced'` in all three models.
 
