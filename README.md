@@ -35,8 +35,8 @@ Random Forest combines many decision trees, making predictions more accurate and
 
 ## Attack Categories
 
-| Category | Description | Examples |
-|----------|-------------|---------|
+| Category |Examples |
+|----------|---------|
 | Normal   | — |
 | DoS      | neptune, smurf, teardrop |
 | Probe    | nmap, ipsweep, portsweep |
