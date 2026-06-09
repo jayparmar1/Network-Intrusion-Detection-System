@@ -2,7 +2,7 @@
 
 Classifies network traffic as **Normal** or one of 4 attack types — DoS, Probe, R2L, U2R — using three machine learning models trained on the NSL-KDD benchmark dataset.
 
-**Live Demo:** [your-app.streamlit.app](https://your-app.streamlit.app)  
+**Live Demo:** http://localhost:8501/
 **Dataset:** [NSL-KDD on Kaggle](https://www.kaggle.com/datasets/hassan06/nslkdd)
 
 ---
@@ -27,11 +27,9 @@ Network intrusion detection is a critical cybersecurity challenge. Traditional r
 
 ## Why Random Forest Outperforms the Other Models
 
-Logistic Regression assumes a linear decision boundary between classes. Network intrusion data is highly non-linear — for example, DoS attacks are defined by extremely high `src_bytes` and `count` values, while Probe attacks show high `diff_srv_rate` with near-zero bytes. These relationships cannot be captured by a linear model, which explains its lower F1 score.
-
-Decision Tree improves on this by learning non-linear splits, but a single tree tends to overfit — it memorises the training data too closely and generalises poorly to unseen traffic patterns.
-
-Random Forest solves both problems. By training 100 decision trees on different random subsets of the data and averaging their predictions, it reduces variance without losing the non-linear expressiveness of individual trees. The `class_weight='balanced'` parameter ensures rare attack types like U2R and R2L — which make up less than 1% of the dataset — still receive adequate attention during training.
+Logistic Regression performs worse because it can only learn straight-line boundaries, while network attacks have complex patterns.
+Decision Tree can learn these patterns but often overfits the training data.
+Random Forest combines many decision trees, making predictions more accurate and stable, while also handling rare attack types better.
 
 ---
 
@@ -39,11 +37,11 @@ Random Forest solves both problems. By training 100 decision trees on different 
 
 | Category | Description | Examples |
 |----------|-------------|---------|
-| Normal   | Legitimate network traffic | — |
-| DoS      | Flood server to cause crash or unavailability | neptune, smurf, teardrop |
-| Probe    | Scan network to find vulnerabilities | nmap, ipsweep, portsweep |
-| R2L      | Gain unauthorised local access from remote machine | guess_passwd, ftp_write |
-| U2R      | Escalate privileges from user to root/admin | buffer_overflow, rootkit |
+| Normal   | — |
+| DoS      | neptune, smurf, teardrop |
+| Probe    | nmap, ipsweep, portsweep |
+| R2L      | guess_passwd, ftp_write |
+| U2R      | buffer_overflow, rootkit |
 
 ---
 
@@ -57,12 +55,11 @@ The dataset is heavily imbalanced — Normal and DoS dominate while U2R and R2L 
 ### Feature Importance (Random Forest)
 <img width="1700" height="1582" alt="image" src="https://github.com/user-attachments/assets/e3df1fb1-a3c3-454d-8918-e237e2bb180e" />
 
-Top features driving predictions: `src_bytes`, `count`, `dst_bytes`, `dst_host_same_srv_rate`, `srv_count`. These align with known attack signatures — DoS attacks generate abnormally high `src_bytes` and `count`, while Probe attacks show distinct `diff_srv_rate` patterns.
+Top features driving predictions: `src_bytes`, `dst_host_serror_rate`, `dst_bytes`, `dst_host_same_srv_rate`, `srv_count`, 'count'.
 
 ### Correlation Heatmap
 <img width="1296" height="989" alt="image" src="https://github.com/user-attachments/assets/6486a507-16ff-4aa7-a70b-00f34bbd1a6d" />
 
-Several features showed high correlation (>0.9), particularly among `dst_host_*` rate features. These were retained for tree-based models which are unaffected by multicollinearity, and noted as a candidate for further optimisation on Logistic Regression.
 
 ---
 
@@ -78,10 +75,8 @@ nids_project/
 │   ├── decision_tree.pkl
 │   ├── random_forest.pkl
 │   └── scaler.pkl
-├── notebooks/
-│   ├── 01_explore.ipynb
-│   ├── 02_preprocessing.ipynb
-│   └── 03_modelling.ipynb
+├── notebook/
+│   └── NSL_KDD Project.ipynb
 ├── app.py
 ├── requirements.txt
 └── README.md
@@ -100,34 +95,11 @@ nids_project/
 | Streamlit | Web app deployment |
 | Joblib | Model serialisation |
 | NSL-KDD | Benchmark dataset |
+| VS-Code| Code Editor |
 
 ---
 
-## How to Run Locally
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/nids-project.git
-cd nids-project
-
-# 2. Install dependencies
-pip install -r requirements.txt
-
-# 3. Add the dataset
-# Download KDDTrain+.txt and KDDTest+.txt from Kaggle
-# Place them in the data/ folder
-
-# 4. Run the notebooks in order
-# notebooks/01_explore.ipynb
-# notebooks/02_preprocessing.ipynb
-# notebooks/03_modelling.ipynb
-# This will generate all .pkl files in models/
-
-# 5. Launch the app
-streamlit run app.py
-```
-
----
+`
 
 ## Requirements
 
@@ -148,7 +120,6 @@ joblib
 
 - **Data leakage:** The `difficulty` column was dropped because it was assigned by researchers after labelling — keeping it would inflate accuracy artificially by leaking classification difficulty into the features.
 - **Class imbalance:** U2R and R2L attacks represent <1% of records. Using `class_weight='balanced'` was more appropriate than oversampling for this dataset size.
-- **Feature selection:** Streamlit app inputs were chosen based on Random Forest feature importance scores, not arbitrarily — ensuring the most predictive features are exposed to the user.
 - **Model comparison:** Training all three models and comparing results provides more insight than picking one algorithm upfront.
 
 ---
