@@ -38,34 +38,39 @@ with col1:
 
 
 with cols2:
-    if st.button("Predict",use_container_width=True):
-        feat=np.zeros(41)
-        feat[4]=src_bytes
-        feat[5]=dst_bytes
-        feat[22]=count
-        feat[23]=srv_count
-        feat[28]=same_srv_rate
-        feat[29]=diff_srv_rate
-        feat[32]=dst_host_srv_count
-        feat[33]=dst_host_same_srv_rate
+    feature_cols = joblib.load('models/feature_columns.pkl')
+    feat_dict = {col: 0 for col in feature_cols}
+
+    feat_dict['src_bytes']                = src_bytes
+    feat_dict['dst_bytes']                = dst_bytes
+    feat_dict['count']                    = count
+    feat_dict['srv_count']                = srv_count
+    feat_dict['same_srv_rate']            = same_srv_rate
+    feat_dict['diff_srv_rate']            = diff_srv_rate
+    feat_dict['dst_host_srv_count']       = dst_host_srv_count
+    feat_dict['dst_host_same_srv_rate']   = dst_host_same_srv_rate
+
+    feat_input = pd.DataFrame([feat_dict])
+
+    model = models[model_name]
+    if model_name == 'Logistic Regression':
+         feat_scaled = pd.DataFrame(
+         scaler.transform(feat_input),
+         columns=feature_cols
+         )
+            pred  = model.predict(feat_scaled)[0]
+            proba = model.predict_proba(feat_scaled)[0]
+    else:
+        pred  = model.predict(feat_input)[0]
+        proba = model.predict_proba(feat_input)[0]
+
+    conf=round(max(probability)*100,1)
+
+    color = "green" if prediction == 0 else "red"
+    st.markdown(f'### Prediction :{color}[{prediction.upper()}] ')
+    st.metric('confidence',f'{conf}%')
 
 
-        model= models[model_name]
-        if model_name == 'Logistic Regression':
-            feat_input=scaler.transform([feat])
-        else:
-            feat_input=[feat]
-
-        st.write("Number of features:", len(feat))
-        prediction=model.predict(feat_input)[0]
-        probability=model.predict_proba(feat_input)[0]
-        conf=round(max(probability)*100,1)
-
-        color = "green" if prediction == 0 else "red"
-        st.markdown(f'### Prediction :{color}[{prediction.upper()}] ')
-        st.metric('confidence',f'{conf}%')
-
-
-        classes=model.classes_
-        prob_df=pd.DataFrame({'class':classes,'probability':probability})
-        st.bar_chart(prob_df.set_index('class'))
+    classes=model.classes_
+    prob_df=pd.DataFrame({'class':classes,'probability':probability})
+    st.bar_chart(prob_df.set_index('class'))
