@@ -20,7 +20,7 @@ models, scaler = load_model()
 st.title("Network Intrusion Detection System")
 st.caption("Classify network traffic as normal or attack using machine learning models.")
 
-col1, cols2 =st.columns([1,2])
+col1, col2 =st.columns([1,2])
 
 with col1:
     st.subheader("select model")
