@@ -37,40 +37,39 @@ with col1:
     dst_host_same_srv_rate = st.number_input("Destination Host same service rate",0.0,1.0,1.0,step=0.01)
 
 
-with cols2:
-    feature_cols = joblib.load('feature_columns.pkl')
-    feat_dict = {col: 0 for col in feature_cols}
+with col2:
+    if st.button("Predict", use_container_width=True):
+        feature_cols = joblib.load('feature_columns.pkl')
+        feat_dict = {col: 0 for col in feature_cols}
 
-    feat_dict['src_bytes']                = src_bytes
-    feat_dict['dst_bytes']                = dst_bytes
-    feat_dict['count']                    = count
-    feat_dict['srv_count']                = srv_count
-    feat_dict['same_srv_rate']            = same_srv_rate
-    feat_dict['diff_srv_rate']            = diff_srv_rate
-    feat_dict['dst_host_srv_count']       = dst_host_srv_count
-    feat_dict['dst_host_same_srv_rate']   = dst_host_same_srv_rate
+        feat_dict['src_bytes']               = src_bytes
+        feat_dict['dst_bytes']               = dst_bytes
+        feat_dict['count']                   = count
+        feat_dict['srv_count']               = srv_count
+        feat_dict['same_srv_rate']           = same_srv_rate
+        feat_dict['diff_srv_rate']           = diff_srv_rate
+        feat_dict['dst_host_srv_count']      = dst_host_srv_count
+        feat_dict['dst_host_same_srv_rate']  = dst_host_same_srv_rate
 
-    feat_input = pd.DataFrame([feat_dict])
+        feat_input = pd.DataFrame([feat_dict])
+        model = models[model_name]
 
-    model = models[model_name]
-    if model_name == 'Logistic Regression':
-         feat_scaled = pd.DataFrame(
-         scaler.transform(feat_input),
-         columns=feature_cols
-         )
-        pred  = model.predict(feat_scaled)[0]
-        proba = model.predict_proba(feat_scaled)[0]
-    else:
-        pred  = model.predict(feat_input)[0]
-        proba = model.predict_proba(feat_input)[0]
+        if model_name == 'Logistic Regression':
+            feat_scaled = pd.DataFrame(
+                scaler.transform(feat_input),
+                columns=feature_cols
+            )
+            pred  = model.predict(feat_scaled)[0]
+            proba = model.predict_proba(feat_scaled)[0]
+        else:
+            pred  = model.predict(feat_input)[0]
+            proba = model.predict_proba(feat_input)[0]
 
-    conf=round(max(probability)*100,1)
+        conf  = round(max(proba) * 100, 1)
+        color = "green" if pred == "normal" else "red"
+        st.markdown(f"### Prediction: :{color}[{str(pred).upper()}]")
+        st.metric("Confidence", f"{conf}%")
 
-    color = "green" if prediction == 0 else "red"
-    st.markdown(f'### Prediction :{color}[{prediction.upper()}] ')
-    st.metric('confidence',f'{conf}%')
-
-
-    classes=model.classes_
-    prob_df=pd.DataFrame({'class':classes,'probability':probability})
-    st.bar_chart(prob_df.set_index('class'))
+        classes = model.classes_
+        prob_df = pd.DataFrame({'Class': classes, 'Probability': proba})
+        st.bar_chart(prob_df.set_index('Class'))
