@@ -56,7 +56,7 @@ with cols2:
         else:
             feat_input=[feat]
 
-
+        st.write("Number of features:", len(feat))
         prediction=model.predict(feat_input)[0]
         probability=model.predict_proba(feat_input)[0]
         conf=round(max(probability)*100,1)
