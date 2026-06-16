@@ -10,7 +10,7 @@ st.set_page_config(page_title="network intrusion detection system", layout="wide
 def load_model():
     return {
     'Logistic Regression': joblib.load("logistic_regression.pkl"),
-    'Random Forest': joblib.load("random_forest.joblib"),
+    'Random Forest': joblib.load("random_forest.pkl"),
     'decision tree': joblib.load("decision_tree.pkl"),
     }, joblib.load("standard_scaler.pkl")
 
