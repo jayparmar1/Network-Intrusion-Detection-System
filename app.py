@@ -58,8 +58,8 @@ with cols2:
          scaler.transform(feat_input),
          columns=feature_cols
          )
-            pred  = model.predict(feat_scaled)[0]
-            proba = model.predict_proba(feat_scaled)[0]
+        pred  = model.predict(feat_scaled)[0]
+        proba = model.predict_proba(feat_scaled)[0]
     else:
         pred  = model.predict(feat_input)[0]
         proba = model.predict_proba(feat_input)[0]
