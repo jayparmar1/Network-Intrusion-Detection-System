@@ -23,19 +23,31 @@ st.caption("Classify network traffic as normal or attack using machine learning 
 col1, col2 =st.columns([1,2])
 
 with col1:
-    st.subheader("select model")
-    model_name=st.selectbox("", list(models.keys()))   
+    st.subheader("Quick Test Scenarios")
+    scenario = st.selectbox("Load a scenario", [
+        "Custom Input",
+        "Normal Traffic",
+        "DoS Attack",
+        "Probe Attack",
+    ])
 
-    st.subheader("Input Features")
-    src_bytes = st.number_input("Source Bytes",0,5000000,0)
-    dst_bytes = st.number_input("Destination Bytes",0,5000000,0)
-    count = st.number_input("Count",0,512,10)
-    srv_count = st.number_input("Srv Count",0,512,10)
-    same_srv_rate = st.number_input("Same Service Rate",0.0,1.0,1.0,step=0.01)
-    diff_srv_rate = st.number_input("Different Service Rate",0.0,1.0,0.0,step=0.01)
-    dst_host_srv_count = st.number_input("Destination Host service Count",0,255,50)
-    dst_host_same_srv_rate = st.number_input("Destination Host same service rate",0.0,1.0,1.0,step=0.01)
+    # Auto fill values based on scenario
+    defaults = {
+        "Custom Input":   [0, 0, 10, 10, 1.0, 0.0, 50, 1.0],
+        "Normal Traffic": [1000, 2000, 5, 5, 0.9, 0.1, 50, 0.9],
+        "DoS Attack":     [2000000, 0, 512, 512, 1.0, 0.0, 255, 1.0],
+        "Probe Attack":   [0, 0, 300, 1, 0.05, 0.95, 255, 0.1],
+    }
 
+    vals = defaults[scenario]
+    src_bytes              = st.number_input("Source Bytes", 0, 5000000, vals[0])
+    dst_bytes              = st.number_input("Destination Bytes", 0, 5000000, vals[1])
+    count                  = st.number_input("Count", 0, 512, vals[2])
+    srv_count              = st.number_input("Srv Count", 0, 512, vals[3])
+    same_srv_rate          = st.number_input("Same Service Rate", 0.0, 1.0, vals[4], step=0.01)
+    diff_srv_rate          = st.number_input("Different Service Rate", 0.0, 1.0, vals[5], step=0.01)
+    dst_host_srv_count     = st.number_input("Dst Host Service Count", 0, 255, vals[6])
+    dst_host_same_srv_rate = st.number_input("Dst Host Same Service Rate", 0.0, 1.0, vals[7], step=0.01)
 
 with col2:
     if st.button("Predict", use_container_width=True):
