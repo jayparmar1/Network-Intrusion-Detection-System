@@ -38,7 +38,7 @@ with col1:
 
 
 with cols2:
-    feature_cols = joblib.load('models/feature_columns.pkl')
+    feature_cols = joblib.load('feature_columns.pkl')
     feat_dict = {col: 0 for col in feature_cols}
 
     feat_dict['src_bytes']                = src_bytes
