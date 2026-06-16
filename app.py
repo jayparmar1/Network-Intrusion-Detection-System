@@ -1,57 +1,58 @@
 import streamlit as st
-import os
-import numpy as np 
-import joblib 
+import joblib
 import pandas as pd
 
-st.set_page_config(page_title="network intrusion detection system", layout="wide")
+st.set_page_config(page_title="Network Intrusion Detection System", layout="wide")
 
 @st.cache_resource
 def load_model():
     return {
-    'Logistic Regression': joblib.load("logistic_regression.pkl"),
-    'Random Forest': joblib.load("random_forest.joblib"),
-    'decision tree': joblib.load("decision_tree.pkl"),
+        'Logistic Regression': joblib.load("logistic_regression.pkl"),
+        'Random Forest':       joblib.load("random_forest.joblib"),
+        'Decision Tree':       joblib.load("decision_tree.pkl"),
     }, joblib.load("standard_scaler.pkl")
 
-
 models, scaler = load_model()
+feature_cols = joblib.load("feature_columns.pkl")
 
 st.title("Network Intrusion Detection System")
 st.caption("Classify network traffic as normal or attack using machine learning models.")
 
-col1, col2 =st.columns([1,2])
+col1, col2 = st.columns([1, 2])
 
 with col1:
-    st.subheader("Quick Test Scenarios")
-    scenario = st.selectbox("Load a scenario", [
+    st.subheader("Select Model")
+    model_name = st.selectbox("", list(models.keys()))
+
+    st.subheader("Load a Scenario")
+    scenario = st.selectbox("Quick test", [
         "Custom Input",
         "Normal Traffic",
         "DoS Attack",
         "Probe Attack",
     ])
 
-    # Auto fill values based on scenario
     defaults = {
-        "Custom Input":   [0, 0, 10, 10, 1.0, 0.0, 50, 1.0],
-        "Normal Traffic": [1000, 2000, 5, 5, 0.9, 0.1, 50, 0.9],
-        "DoS Attack":     [2000000, 0, 512, 512, 1.0, 0.0, 255, 1.0],
-        "Probe Attack":   [0, 0, 300, 1, 0.05, 0.95, 255, 0.1],
+        "Custom Input":   [0,       0,    10,  10,  1.0,  0.0, 50,  1.0],
+        "Normal Traffic": [1000,    2000, 5,   5,   0.9,  0.1, 50,  0.9],
+        "DoS Attack":     [2000000, 0,    512, 512, 1.0,  0.0, 255, 1.0],
+        "Probe Attack":   [0,       0,    300, 1,   0.05, 0.95,255, 0.1],
     }
 
     vals = defaults[scenario]
-    src_bytes              = st.number_input("Source Bytes", 0, 5000000, vals[0])
-    dst_bytes              = st.number_input("Destination Bytes", 0, 5000000, vals[1])
-    count                  = st.number_input("Count", 0, 512, vals[2])
-    srv_count              = st.number_input("Srv Count", 0, 512, vals[3])
-    same_srv_rate          = st.number_input("Same Service Rate", 0.0, 1.0, vals[4], step=0.01)
-    diff_srv_rate          = st.number_input("Different Service Rate", 0.0, 1.0, vals[5], step=0.01)
-    dst_host_srv_count     = st.number_input("Dst Host Service Count", 0, 255, vals[6])
-    dst_host_same_srv_rate = st.number_input("Dst Host Same Service Rate", 0.0, 1.0, vals[7], step=0.01)
+
+    st.subheader("Input Features")
+    src_bytes              = st.number_input("Source Bytes",                    0, 5000000, vals[0])
+    dst_bytes              = st.number_input("Destination Bytes",               0, 5000000, vals[1])
+    count                  = st.number_input("Count",                           0, 512,     vals[2])
+    srv_count              = st.number_input("Srv Count",                       0, 512,     vals[3])
+    same_srv_rate          = st.number_input("Same Service Rate",               0.0, 1.0,  vals[4], step=0.01)
+    diff_srv_rate          = st.number_input("Different Service Rate",          0.0, 1.0,  vals[5], step=0.01)
+    dst_host_srv_count     = st.number_input("Destination Host Service Count",  0, 255,    vals[6])
+    dst_host_same_srv_rate = st.number_input("Destination Host Same Srv Rate",  0.0, 1.0,  vals[7], step=0.01)
 
 with col2:
     if st.button("Predict", use_container_width=True):
-        feature_cols = joblib.load('feature_columns.pkl')
         feat_dict = {col: 0 for col in feature_cols}
 
         feat_dict['src_bytes']               = src_bytes
