@@ -30,14 +30,18 @@ with col1:
         "Normal Traffic",
         "DoS Attack",
         "Probe Attack",
+        "R2L Attack",
+        "U2R Attack",
     ])
 
     defaults = {
-        "Custom Input":   [0,       0,    10,  10,  1.0,  0.0, 50,  1.0],
-        "Normal Traffic": [1000,    2000, 5,   5,   0.9,  0.1, 50,  0.9],
-        "DoS Attack":     [2000000, 0,    512, 512, 1.0,  0.0, 255, 1.0],
-        "Probe Attack":   [0,       0,    300, 1,   0.05, 0.95,255, 0.1],
-    }
+        "Custom Input":   [0,   0,    10, 10, 1.0,  0.0,  50,  1.0],
+        "Normal Traffic": [491, 0,    2,  2,  1.0,  0.0,  25,  0.17],
+        "DoS Attack":     [0,   0,    123, 6, 0.05, 0.07, 26,  0.1],
+        "Probe Attack":   [18,  0,    1,  1,  1.0,  0.0,  16,  1.0],
+        "R2L Attack":     [334, 0,    2,  2,  1.0,  0.0,  20,  1.0],
+        "U2R Attack":     [621, 8356, 1,  1,  1.0,  0.0,  4,   0.02],
+        }
 
     vals = defaults[scenario]
 
