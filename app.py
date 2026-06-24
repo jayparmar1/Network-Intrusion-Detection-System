@@ -8,12 +8,22 @@ st.set_page_config(page_title="Network Intrusion Detection System", layout="wide
 def load_model():
     return {
         'Logistic Regression': joblib.load("logistic_regression.pkl"),
-        'Random Forest':       joblib.load("random_forest.joblib"),
+        'Random Forest':       joblib.load("random_forest.pkl"),
         'Decision Tree':       joblib.load("decision_tree.pkl"),
     }, joblib.load("standard_scaler.pkl")
 
 models, scaler = load_model()
 feature_cols = joblib.load("feature_columns.pkl")
+
+# Real rows from NSL-KDD dataset — all 41 features
+SCENARIOS = {
+    "Custom Input": None,
+    "Normal Traffic": [0.0,1.0,20.0,9.0,491.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,2.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,150.0,25.0,0.17,0.03,0.17,0.0,0.0,0.0,0.05,0.0],
+    "DoS Attack":    [0.0,1.0,49.0,5.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,123.0,6.0,1.0,1.0,0.0,0.0,0.05,0.07,0.0,255.0,26.0,0.1,0.05,0.0,0.0,1.0,1.0,0.0,0.0],
+    "Probe Attack":  [0.0,0.0,14.0,9.0,18.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,1.0,16.0,1.0,0.0,1.0,1.0,0.0,0.0,0.0,0.0],
+    "R2L Attack":    [0.0,1.0,20.0,9.0,334.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,2.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,2.0,20.0,1.0,0.0,1.0,0.2,0.0,0.0,0.0,0.0],
+    "U2R Attack":    [98.0,1.0,60.0,9.0,621.0,8356.0,0.0,0.0,1.0,1.0,0.0,1.0,5.0,1.0,0.0,14.0,1.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,255.0,4.0,0.02,0.02,0.0,0.0,0.0,0.0,0.0,0.0],
+}
 
 st.title("Network Intrusion Detection System")
 st.caption("Classify network traffic as normal or attack using machine learning models.")
@@ -25,51 +35,41 @@ with col1:
     model_name = st.selectbox("", list(models.keys()))
 
     st.subheader("Load a Scenario")
-    scenario = st.selectbox("Quick test", [
-        "Custom Input",
-        "Normal Traffic",
-        "DoS Attack",
-        "Probe Attack",
-        "R2L Attack",
-        "U2R Attack",
-    ])
-
-    defaults = {
-        "Custom Input":   [0,   0,    10, 10, 1.0,  0.0,  50,  1.0],
-        "Normal Traffic": [491, 0,    2,  2,  1.0,  0.0,  25,  0.17],
-        "DoS Attack":     [0,   0,    123, 6, 0.05, 0.07, 26,  0.1],
-        "Probe Attack":   [18,  0,    1,  1,  1.0,  0.0,  16,  1.0],
-        "R2L Attack":     [334, 0,    2,  2,  1.0,  0.0,  20,  1.0],
-        "U2R Attack":     [621, 8356, 1,  1,  1.0,  0.0,  4,   0.02],
-        }
-
-    vals = defaults[scenario]
+    scenario = st.selectbox("Quick test", list(SCENARIOS.keys()))
 
     st.subheader("Input Features")
-    src_bytes              = st.number_input("Source Bytes",                    0, 5000000, vals[0])
-    dst_bytes              = st.number_input("Destination Bytes",               0, 5000000, vals[1])
-    count                  = st.number_input("Count",                           0, 512,     vals[2])
-    srv_count              = st.number_input("Srv Count",                       0, 512,     vals[3])
-    same_srv_rate          = st.number_input("Same Service Rate",               0.0, 1.0,  vals[4], step=0.01)
-    diff_srv_rate          = st.number_input("Different Service Rate",          0.0, 1.0,  vals[5], step=0.01)
-    dst_host_srv_count     = st.number_input("Destination Host Service Count",  0, 255,    vals[6])
-    dst_host_same_srv_rate = st.number_input("Destination Host Same Srv Rate",  0.0, 1.0,  vals[7], step=0.01)
+
+    # If scenario selected, use real values — else default to 0
+    vals = SCENARIOS[scenario] if SCENARIOS[scenario] else [0] * 41
+
+    src_bytes              = st.number_input("Source Bytes",                   0, 5000000, int(vals[4]))
+    dst_bytes              = st.number_input("Destination Bytes",              0, 5000000, int(vals[5]))
+    count                  = st.number_input("Count",                          0, 512,     int(vals[22]))
+    srv_count              = st.number_input("Srv Count",                      0, 512,     int(vals[23]))
+    same_srv_rate          = st.number_input("Same Service Rate",              0.0, 1.0,   float(vals[28]), step=0.01)
+    diff_srv_rate          = st.number_input("Different Service Rate",         0.0, 1.0,   float(vals[29]), step=0.01)
+    dst_host_srv_count     = st.number_input("Destination Host Service Count", 0, 255,     int(vals[32]))
+    dst_host_same_srv_rate = st.number_input("Destination Host Same Srv Rate", 0.0, 1.0,   float(vals[33]), step=0.01)
 
 with col2:
     if st.button("Predict", use_container_width=True):
-        feat_dict = {col: 0 for col in feature_cols}
-
-        feat_dict['src_bytes']               = src_bytes
-        feat_dict['dst_bytes']               = dst_bytes
-        feat_dict['count']                   = count
-        feat_dict['srv_count']               = srv_count
-        feat_dict['same_srv_rate']           = same_srv_rate
-        feat_dict['diff_srv_rate']           = diff_srv_rate
-        feat_dict['dst_host_srv_count']      = dst_host_srv_count
-        feat_dict['dst_host_same_srv_rate']  = dst_host_same_srv_rate
-
-        feat_input = pd.DataFrame([feat_dict])
         model = models[model_name]
+
+        if SCENARIOS[scenario]:
+            # Use full 41-feature real row for preset scenarios
+            feat_input = pd.DataFrame([SCENARIOS[scenario]], columns=feature_cols)
+        else:
+            # Custom input — use 8 features, rest 0
+            feat_dict = {col: 0 for col in feature_cols}
+            feat_dict['src_bytes']               = src_bytes
+            feat_dict['dst_bytes']               = dst_bytes
+            feat_dict['count']                   = count
+            feat_dict['srv_count']               = srv_count
+            feat_dict['same_srv_rate']           = same_srv_rate
+            feat_dict['diff_srv_rate']           = diff_srv_rate
+            feat_dict['dst_host_srv_count']      = dst_host_srv_count
+            feat_dict['dst_host_same_srv_rate']  = dst_host_same_srv_rate
+            feat_input = pd.DataFrame([feat_dict])
 
         if model_name == 'Logistic Regression':
             feat_scaled = pd.DataFrame(
